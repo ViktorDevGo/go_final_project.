@@ -14,7 +14,4 @@ func Run() error {
 	fmt.Println("Запуск сервера на порту %d\n", port)
 
 	return http.ListenAndServe(fmt.Sprintf(":%d", port), newr)
-	//http.Handle("/", http.FileServer(http.Dir("web")))
-	//fmt.Println("WWWWWW")
-	//return http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
 }
