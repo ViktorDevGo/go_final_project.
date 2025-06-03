@@ -1,4 +1,4 @@
-package nextdate
+package api
 
 import (
 	"fmt"
@@ -7,8 +7,6 @@ import (
 
 	"github.com/go-chi/chi/v5"
 )
-
-const DateFormat = "20060102"
 
 func nextDayHandler(res http.ResponseWriter, req *http.Request) {
 	gnow := req.URL.Query().Get("now")
@@ -44,67 +42,9 @@ func nextDayHandler(res http.ResponseWriter, req *http.Request) {
 		res.Write([]byte("NextDate missing"))
 		return
 	}
-	fmt.Println("новая дата:", str)
-	fmt.Println("----------------")
 
 	res.Write([]byte(str))
 
-}
-
-func taskHandler(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case http.MethodPost:
-		addTaskHandler(w, r)
-
-	}
-}
-
-func selectTaskHandler(w http.ResponseWriter, r *http.Request) {
-
-	switch r.Method {
-	case http.MethodGet:
-		getTaskHandler(w, r)
-	}
-}
-
-func onetaskkHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("onetaskkHandler")
-	id := r.URL.Query().Get("id")
-	fmt.Println("id= ", id)
-	getoneTaskHandler(w, r)
-
-}
-
-func putttaskkHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("putttask")
-
-	switch r.Method {
-	case http.MethodPut:
-		putTaskHandler(w, r)
-
-	}
-}
-
-func deletetaskkHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("deletetask")
-	idd := r.URL.Query().Get("id")
-	fmt.Println("idd= ", idd)
-	switch r.Method {
-	case http.MethodDelete:
-		delTaskHandler(w, r)
-
-	}
-}
-
-func donehandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("done")
-	idd := r.URL.Query().Get("id")
-	fmt.Println("done id= ", idd)
-	switch r.Method {
-	case http.MethodPost:
-		doneTaskHandler(w, r)
-
-	}
 }
 
 func Init() *chi.Mux {
@@ -112,12 +52,12 @@ func Init() *chi.Mux {
 	rout := chi.NewRouter()
 	rout.Handle("/*", http.FileServer(http.Dir("web")))
 	rout.Get("/api/nextdate", nextDayHandler)
-	rout.Post("/api/task", taskHandler)
-	rout.Get("/api/tasks", selectTaskHandler)
-	rout.Get("/api/task", onetaskkHandler)
-	rout.Put("/api/task", putttaskkHandler)
-	rout.Delete("/api/task", deletetaskkHandler)
-	rout.Post("/api/task/done", donehandler)
+	rout.Post("/api/task", addTaskHandler)
+	rout.Get("/api/tasks", getTaskHandler)
+	rout.Get("/api/task", getoneTaskHandler)
+	rout.Put("/api/task", putTaskHandler)
+	rout.Delete("/api/task", delTaskHandler)
+	rout.Post("/api/task/done", doneTaskHandler)
 
 	return rout
 }

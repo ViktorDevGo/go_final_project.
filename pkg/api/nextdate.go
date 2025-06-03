@@ -1,4 +1,4 @@
-package nextdate
+package api
 
 import (
 	"errors"
@@ -6,6 +6,8 @@ import (
 	"strconv"
 	"time"
 )
+
+const DateFormat = "20060102"
 
 func NextDate(nowtime time.Time, dstart string, repeat string) (string, error) {
 	//проверка пустой или нет repeat

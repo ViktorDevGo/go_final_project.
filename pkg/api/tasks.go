@@ -1,4 +1,4 @@
-package nextdate
+package api
 
 import (
 	"bytes"
@@ -14,16 +14,18 @@ type TasksResp struct {
 	Tasks []*dbase.Task `json:"tasks"`
 }
 
-func getTaskHandler(w http.ResponseWriter, r *http.Request) {
-	type errorjson struct {
-		Error string `json:"error"`
-	}
+type ErrorJson struct {
+	Error string `json:"error"`
+}
 
-	tasks, err := dbase.Tasks(30) // в параметре максимальное количество записей
+const limitConst = 30
+
+func getTaskHandler(w http.ResponseWriter, r *http.Request) {
+	tasks, err := dbase.Tasks(limitConst) // в параметре максимальное количество записей
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(errorjson{Error: "dbase.Tasks(30)"})
+		json.NewEncoder(w).Encode(ErrorJson{Error: "LimitMax"})
 		return
 	}
 	if tasks == nil {
@@ -34,6 +36,10 @@ func getTaskHandler(w http.ResponseWriter, r *http.Request) {
 	response := TasksResp{Tasks: tasks}
 
 	resp, err := json.MarshalIndent(response, "", "    ")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	// в заголовок записываем тип контента, у нас это данные в формате JSON
 	w.Header().Set("Content-Type", "application/json")
 	// так как все успешно, то статус OK
@@ -43,23 +49,21 @@ func getTaskHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
-// ******************************
 func getoneTaskHandler(w http.ResponseWriter, r *http.Request) {
-	//fmt.Println("inside getoneTaskHandler")
-
-	type errorjson struct {
-		Error string `json:"error"`
-	}
 	id := r.URL.Query().Get("id") // Теперь получаем id из query-параметра
 
 	task, err := dbase.GetTask(id) // в параметре максимальное количество записей
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(errorjson{Error: "getoneTaskHandler"})
+		json.NewEncoder(w).Encode(ErrorJson{Error: "getoneTaskHandler"})
 		return
 	}
 	resp, err := json.MarshalIndent(task, "", "    ")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	// в заголовок записываем тип контента,  данные в формате JSON
 	w.Header().Set("Content-Type", "application/json")
 	// так как все успешно, то статус OK
@@ -69,17 +73,13 @@ func getoneTaskHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
-// ********************************************************
 func putTaskHandler(w http.ResponseWriter, r *http.Request) {
 	var buf bytes.Buffer
-	type errorjson struct {
-		Error string `json:"error"`
-	}
 	_, err := buf.ReadFrom(r.Body)
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(errorjson{Error: "read body error"})
+		json.NewEncoder(w).Encode(ErrorJson{Error: "read body error"})
 		return
 	}
 	fmt.Println("r.body = ", buf.String())
@@ -96,7 +96,7 @@ func putTaskHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(errorjson{Error: "UpdateTask"})
+		json.NewEncoder(w).Encode(ErrorJson{Error: "UpdateTask"})
 		return
 	}
 	// в заголовок записываем тип контента,  данные в формате JSON
@@ -107,25 +107,19 @@ func putTaskHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("{}"))
 }
 
-// *******************************************
 func delTaskHandler(w http.ResponseWriter, r *http.Request) {
-
-	type errorjson struct {
-		Error string `json:"error"`
-	}
-
 	idStr := r.URL.Query().Get("id")
 	if idStr == "" {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(errorjson{Error: "ID query error"})
+		json.NewEncoder(w).Encode(ErrorJson{Error: "ID query error"})
 		return
 	}
 	err := dbase.DeleteTask(idStr)
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(errorjson{Error: "DeleteTask error"})
+		json.NewEncoder(w).Encode(ErrorJson{Error: "DeleteTask error"})
 		return
 	}
 
@@ -137,18 +131,12 @@ func delTaskHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
-// *******************************************
 func doneTaskHandler(w http.ResponseWriter, r *http.Request) {
-
-	type errorjson struct {
-		Error string `json:"error"`
-	}
-
 	idStr := r.URL.Query().Get("id")
 	if idStr == "" {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(errorjson{Error: "ID query error"})
+		json.NewEncoder(w).Encode(ErrorJson{Error: "ID query error"})
 		return
 	}
 
@@ -156,7 +144,7 @@ func doneTaskHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(errorjson{Error: "getoneTaskHandler"})
+		json.NewEncoder(w).Encode(ErrorJson{Error: "getoneTaskHandler"})
 		return
 	}
 	//Одноразовая задача с пустым полем repeat удаляется.
@@ -165,7 +153,7 @@ func doneTaskHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusInternalServerError)
-			json.NewEncoder(w).Encode(errorjson{Error: "DeleteTask error"})
+			json.NewEncoder(w).Encode(ErrorJson{Error: "DeleteTask error"})
 			return
 		}
 	} else {
@@ -176,12 +164,11 @@ func doneTaskHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusInternalServerError)
-			json.NewEncoder(w).Encode(errorjson{Error: "DeleteTask error"})
+			json.NewEncoder(w).Encode(ErrorJson{Error: "DeleteTask error"})
 			return
 		}
 
 	}
-	fmt.Println("OK")
 	w.Header().Set("Content-Type", "application/json")
 	// так как все успешно, то статус OK
 	w.WriteHeader(http.StatusOK)

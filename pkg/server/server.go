@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"net/http"
 
-	nextdate "github.com/ViktorDevGo/go_final_project/pkg/api"
+	api "github.com/ViktorDevGo/go_final_project/pkg/api"
 )
 
 func Run() error {
 	//nextdate.Init()
-	newr := nextdate.Init()
+	newr := api.Init()
 	port := 7540
 	fmt.Println("Запуск сервера на порту %d\n", port)
 

@@ -43,10 +43,6 @@ func AddTask(task *Task) (int64, error) {
 func Tasks(limit int) ([]*Task, error) {
 
 	var res []*Task
-	if DB == nil {
-		fmt.Println("Tasks DB = nil")
-		return nil, fmt.Errorf("database not initialized")
-	}
 
 	rows, err := DB.Query("SELECT *from scheduler ORDER BY date")
 	if err != nil {
@@ -86,7 +82,6 @@ func GetTask(id string) (*Task, error) {
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(task)
 	return task, nil
 }
 
